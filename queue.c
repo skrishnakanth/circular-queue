@@ -53,34 +53,9 @@ At most 3000 calls will be made to enQueue, deQueue, Front, Rear, isEmpty, and i
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include "queue.h"
 
-typedef struct
-{
-    int *buffer;
-    int fidx; // Use for front
-    int ridx; // Use for rear
-    int size;
-    int current_size;
-} MyCircularQueue;
-
-MyCircularQueue *myCircularQueueCreate(int k)
-{
-    MyCircularQueue *queue = malloc(sizeof(MyCircularQueue));
-    queue->buffer = malloc(k * sizeof(int));
-    queue->size = k;
-    queue->fidx = 0;
-    queue->ridx = -1;
-    queue->current_size = 0;
-}
-
-bool myCircularQueueEnQueue(MyCircularQueue *obj, int value);
-bool myCircularQueueDeQueue(MyCircularQueue *obj);
-int myCircularQueueFront(MyCircularQueue *obj);
-int myCircularQueueRear(MyCircularQueue *obj);
-bool myCircularQueueIsEmpty(MyCircularQueue *obj);
-bool myCircularQueueIsFull(MyCircularQueue *obj);
-void myCircularQueueFree(MyCircularQueue *obj);
-
+/* Enable  debug output */
 //#define DEBUG
 
 void print_queue_info(const char *str, const char *func_name, MyCircularQueue *obj)
@@ -96,45 +71,74 @@ void print_queue_info(const char *str, const char *func_name, MyCircularQueue *o
 #endif
 }
 
+
+
+/* Creation & Initialization of Queue */
+
+MyCircularQueue *myCircularQueueCreate(int k)
+{
+    MyCircularQueue *queue = malloc(sizeof(MyCircularQueue));
+    queue->buffer = malloc(k * sizeof(int));
+    queue->size = k;
+    queue->fidx = 0;
+    queue->ridx = -1;
+    queue->current_size = 0;
+}
+
+
+/* Add single value (int) to queue */
 bool myCircularQueueEnQueue(MyCircularQueue *obj, int value)
 {
     print_queue_info("before", __func__, obj);
-    if((obj->ridx) >= obj->size-1)
+
+    if (myCircularQueueIsFull(obj) == true)
     {
-        obj->ridx=-1;
+        return false;
     }
-        obj->ridx++;
-        obj->buffer[obj->ridx] = value;
-        
-    if(obj->current_size != (obj->size))
+
+    if (obj->ridx == obj->size - 1)
+    {
+        obj->ridx = -1;
+    }
+
+    obj->ridx++;
+    obj->buffer[obj->ridx] = value;
+
+    if (obj->current_size != (obj->size))
     {
         obj->current_size++;
     }
+
     print_queue_info("after", __func__, obj);
+
+    return true;
 }
 
+
+/* Remove single value from queue*/
 bool myCircularQueueDeQueue(MyCircularQueue *obj)
 {
     print_queue_info("before", __func__, obj);
-    if(myCircularQueueIsEmpty(obj)==1)
+    if (myCircularQueueIsEmpty(obj) == true)
     {
-        return -1;
+        return false;
     }
-    if((obj->fidx) >= obj->size-1)
+    if ((obj->fidx) >= obj->size - 1)
     {
-        obj->ridx=-1;
+        obj->fidx = -1;
     }
     obj->fidx++;
     obj->current_size--;
     print_queue_info("after", __func__, obj);
-    return 1;
+    return true;
 }
 
+/* Return oldest element in queue */
 int myCircularQueueFront(MyCircularQueue *obj)
 {
-    if (myCircularQueueIsEmpty(obj) == 1)
+    if (myCircularQueueIsEmpty(obj) == true)
     {
-        return -1;
+        return QUEUE_ERROR;
     }
     else
     {
@@ -142,59 +146,52 @@ int myCircularQueueFront(MyCircularQueue *obj)
     }
 }
 
+/* Return newest element in queue */
+
 int myCircularQueueRear(MyCircularQueue *obj)
 {
-    if (obj->fidx != -1)
+    if (myCircularQueueIsEmpty(obj) == true)
     {
-        return obj->buffer[obj->ridx];
+        return QUEUE_ERROR;
     }
     else
     {
-        return -1;
+        return obj->buffer[obj->ridx];
     }
 }
 
+
+/* Check if Queue is empty */
 bool myCircularQueueIsEmpty(MyCircularQueue *obj)
 {
     if (obj->current_size == 0)
     {
-        return 1;
+        return true;
     }
     else
-        return 0;
+        return false;
 }
 
+/* Check if Queue is full */
 bool myCircularQueueIsFull(MyCircularQueue *obj)
 {
     if (obj->current_size == obj->size)
     {
-        return 1;
+        return true;
     }
     else
-        return 0;
+        return false;
 }
 
+
+/* De-initialize & Free  queue */
 void myCircularQueueFree(MyCircularQueue *obj)
 {
+    obj->size = 0;
+    obj->fidx = 0;
+    obj->ridx = 0;
+    obj->current_size = 0;
     free(obj->buffer);
     free(obj);
+    
 }
-
-void main()
-{
-
-    MyCircularQueue *q = myCircularQueueCreate(5);
-    myCircularQueueEnQueue(q, 11);
-    myCircularQueueEnQueue(q, 12);
-    myCircularQueueEnQueue(q, 31);
-    myCircularQueueEnQueue(q, 22);
-    myCircularQueueEnQueue(q, 42);
-    myCircularQueueDeQueue(q);
-    myCircularQueueDeQueue(q);
-    printf("Front : %d\n", myCircularQueueFront(q));
-    printf("Rear :%d\n", myCircularQueueRear(q));
-    myCircularQueueEnQueue(q, 55);
-    myCircularQueueEnQueue(q, 99);
-    printf("Front : %d\n", myCircularQueueFront(q));
-    printf("Rear :%d\n", myCircularQueueRear(q));
-}   
